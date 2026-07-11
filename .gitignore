@@ -1,0 +1,13 @@
+# 生成物 / 動作確認の一時ファイル
+unpacked/
+*.docx
+*.pdf
+*.png
+*.jpg
+
+# OS / エディタ
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/

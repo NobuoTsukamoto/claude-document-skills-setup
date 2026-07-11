@@ -1,0 +1,150 @@
+<#
+.SYNOPSIS
+    Claude Code の docx (Agent Skill) を Windows で動かすための依存環境を
+    冪等にセットアップ・検証するスクリプト。
+
+.DESCRIPTION
+    以下を導入・設定します（既に入っているものはスキップ）:
+      - Python 3.12 (uv 管理) + 専用 venv に lxml / defusedxml
+      - pandoc              (winget: JohnMacFarlane.Pandoc)
+      - LibreOffice         (winget: TheDocumentFoundation.LibreOffice)
+      - Poppler / pdftoppm  (winget: oschwartz10612.Poppler)
+      - docx                (npm -g)
+      - User 環境変数: PATH 追記 / NODE_PATH / PYTHONUTF8=1
+
+    前提: winget, uv, node/npm が導入済みであること。
+      uv:   winget install astral-sh.uv
+      node: winget install OpenJS.NodeJS   (または任意の方法)
+
+.NOTES
+    実行方法 (PowerShell 7+ 推奨):
+        pwsh -File .\setup-docx-skill.ps1
+    確認のみ (何も変更しない):
+        pwsh -File .\setup-docx-skill.ps1 -VerifyOnly
+#>
+[CmdletBinding()]
+param(
+    [switch]$VerifyOnly
+)
+
+$ErrorActionPreference = 'Stop'
+function Info($m){ Write-Host "[INFO] $m" -ForegroundColor Cyan }
+function Ok($m){   Write-Host "[ OK ] $m" -ForegroundColor Green }
+function Warn($m){ Write-Host "[WARN] $m" -ForegroundColor Yellow }
+function Fail($m){ Write-Host "[FAIL] $m" -ForegroundColor Red }
+
+$VenvDir = Join-Path $env:USERPROFILE '.claude\skill-envs\docx'
+$VenvPy  = Join-Path $VenvDir 'Scripts\python.exe'
+$NpmGlobalModules = Join-Path $env:APPDATA 'npm\node_modules'
+
+# ---------------------------------------------------------------------------
+# 前提チェック
+# ---------------------------------------------------------------------------
+function Require-Command($name, $hint){
+    if(-not (Get-Command $name -ErrorAction SilentlyContinue)){
+        Fail "$name が見つかりません。$hint"
+        return $false
+    }
+    return $true
+}
+
+if(-not $VerifyOnly){
+    $prereqOk = $true
+    $prereqOk = (Require-Command winget 'App Installer を Microsoft Store から導入してください。') -and $prereqOk
+    $prereqOk = (Require-Command uv     'winget install astral-sh.uv') -and $prereqOk
+    $prereqOk = (Require-Command node   'winget install OpenJS.NodeJS') -and $prereqOk
+    $prereqOk = (Require-Command npm    'Node.js に同梱されています。') -and $prereqOk
+    if(-not $prereqOk){ throw '前提コマンドが不足しています。上記を導入してから再実行してください。' }
+
+    # -----------------------------------------------------------------------
+    # 1) Python 3.12 (uv) + 専用 venv + lxml/defusedxml
+    # -----------------------------------------------------------------------
+    Info 'Python 3.12 を uv で確認/導入中...'
+    uv python install 3.12 | Out-Host
+
+    if(-not (Test-Path $VenvPy)){
+        Info "venv を作成: $VenvDir"
+        uv venv $VenvDir --python 3.12 | Out-Host
+    } else { Ok 'venv は既に存在' }
+
+    Info 'lxml / defusedxml を venv に導入中...'
+    uv pip install --python $VenvPy lxml defusedxml | Out-Host
+
+    # -----------------------------------------------------------------------
+    # 2) winget パッケージ (pandoc / LibreOffice / Poppler)
+    # -----------------------------------------------------------------------
+    function Winget-Ensure($id){
+        $installed = winget list --id $id -e 2>$null | Select-String -SimpleMatch $id
+        if($installed){ Ok "$id は導入済み"; return }
+        Info "$id を導入中..."
+        winget install --id $id -e --accept-package-agreements --accept-source-agreements | Out-Host
+    }
+    Winget-Ensure 'JohnMacFarlane.Pandoc'
+    Winget-Ensure 'TheDocumentFoundation.LibreOffice'
+    Winget-Ensure 'oschwartz10612.Poppler'
+
+    # -----------------------------------------------------------------------
+    # 3) docx (npm -g)
+    # -----------------------------------------------------------------------
+    Info 'npm -g docx を導入中...'
+    npm install -g docx | Out-Host
+
+    # -----------------------------------------------------------------------
+    # 4) User 環境変数
+    #    - pandoc / poppler はバージョン入りフォルダなので動的に解決する
+    #    - LibreOffice は固定パス
+    # -----------------------------------------------------------------------
+    Info 'User 環境変数を設定中...'
+    $pkg = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages'
+    $pandocDir  = (Get-ChildItem "$pkg\JohnMacFarlane.Pandoc_*\pandoc-*\pandoc.exe"            -ErrorAction SilentlyContinue | Select-Object -First 1).DirectoryName
+    $popplerDir = (Get-ChildItem "$pkg\oschwartz10612.Poppler_*\poppler-*\Library\bin\pdftoppm.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).DirectoryName
+    $loDir = 'C:\Program Files\LibreOffice\program'
+
+    $userPath = ([Environment]::GetEnvironmentVariable('Path','User')).TrimEnd(';')
+    $parts = $userPath -split ';' | Where-Object { $_ }
+    foreach($d in @($pandocDir,$popplerDir,$loDir)){
+        if($d -and (Test-Path $d) -and ($parts -notcontains $d)){ $parts += $d; Info "PATH 追加: $d" }
+    }
+    [Environment]::SetEnvironmentVariable('Path', ($parts -join ';'), 'User')
+    [Environment]::SetEnvironmentVariable('NODE_PATH', $NpmGlobalModules, 'User')
+    [Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')
+    Ok 'User 環境変数を設定 (PATH / NODE_PATH / PYTHONUTF8)'
+}
+
+# ---------------------------------------------------------------------------
+# 検証 (現在セッションの env を保存済み User/Machine 値で最新化してから確認)
+# ---------------------------------------------------------------------------
+Info '検証のため現在セッションの環境変数を最新化...'
+$env:Path = ([Environment]::GetEnvironmentVariable('Path','Machine')) + ';' + ([Environment]::GetEnvironmentVariable('Path','User'))
+$env:NODE_PATH  = [Environment]::GetEnvironmentVariable('NODE_PATH','User')
+$env:PYTHONUTF8 = [Environment]::GetEnvironmentVariable('PYTHONUTF8','User')
+
+$allOk = $true
+"`n=== 検証結果 ==="
+foreach($c in 'pandoc','soffice','pdftoppm','node','npm'){
+    $p = (Get-Command $c -ErrorAction SilentlyContinue).Source
+    if($p){ Ok "$c -> $p" } else { Fail "$c が PATH にありません"; $allOk = $false }
+}
+
+# venv python + パッケージ
+if(Test-Path $VenvPy){
+    $r = & $VenvPy -c "import lxml,defusedxml;print('ok')" 2>&1
+    if($r -match 'ok'){ Ok "venv python + lxml/defusedxml -> $VenvPy" } else { Fail "venv python パッケージ NG: $r"; $allOk = $false }
+} else { Fail "venv python が見つかりません: $VenvPy"; $allOk = $false }
+
+# require(docx)
+$r = node -e "require('docx');console.log('ok')" 2>&1 | Select-Object -First 1
+if($r -match 'ok'){ Ok 'node require(docx)' } else { Fail "require(docx) NG (NODE_PATH を確認): $r"; $allOk = $false }
+
+"`nNODE_PATH  = $env:NODE_PATH"
+"PYTHONUTF8 = $env:PYTHONUTF8"
+
+if($allOk){
+    Write-Host "`n[SUCCESS] docx スキルの依存環境はすべて揃っています。" -ForegroundColor Green
+    Write-Host "         新しいターミナルを開けば PATH 等が反映されます。" -ForegroundColor Green
+    exit 0
+} else {
+    Write-Host "`n[INCOMPLETE] 未達の項目があります。上記 FAIL を確認してください。" -ForegroundColor Yellow
+    Write-Host "         winget 直後はターミナルを開き直すと PATH が反映されることがあります。" -ForegroundColor Yellow
+    exit 1
+}

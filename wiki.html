@@ -1,0 +1,368 @@
+<title>docx スキル 環境セットアップ (Windows)</title>
+<style>
+  :root{
+    color-scheme: light dark;
+    --ground:#f4f6f8;
+    --surface:#ffffff;
+    --surface-2:#eef1f4;
+    --ink:#182029;
+    --muted:#5a6675;
+    --faint:#8794a3;
+    --border:#e0e5ea;
+    --border-strong:#cdd5dd;
+    --accent:#0f766e;
+    --accent-ink:#0b5852;
+    --accent-wash:#e3f2f0;
+    --ok:#15803d;
+    --ok-wash:#e6f4ea;
+    --warn:#b45309;
+    --warn-wash:#fbefdd;
+    --danger:#be123c;
+    --danger-wash:#fbe4e9;
+    --code-bg:#0f1620;
+    --code-ink:#dbe4ee;
+    --code-comment:#7d8a99;
+    --code-accent:#5eead4;
+    --shadow:0 1px 2px rgba(16,24,32,.05), 0 8px 28px -18px rgba(16,24,32,.35);
+    --mono:ui-monospace,"Cascadia Code","Cascadia Mono",Consolas,"SFMono-Regular",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans JP",sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ground:#0c1015;
+      --surface:#141a21;
+      --surface-2:#1a222b;
+      --ink:#e6edf3;
+      --muted:#9aa7b4;
+      --faint:#6b7885;
+      --border:#232c36;
+      --border-strong:#33404c;
+      --accent:#2dd4bf;
+      --accent-ink:#5eead4;
+      --accent-wash:#123330;
+      --ok:#4ade80;
+      --ok-wash:#12301d;
+      --warn:#fbbf24;
+      --warn-wash:#33270c;
+      --danger:#fb7185;
+      --danger-wash:#33161f;
+      --code-bg:#0a0e13;
+      --code-ink:#dbe4ee;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -20px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="light"]{
+    color-scheme: light;
+    --ground:#f4f6f8;--surface:#ffffff;--surface-2:#eef1f4;--ink:#182029;--muted:#5a6675;--faint:#8794a3;
+    --border:#e0e5ea;--border-strong:#cdd5dd;--accent:#0f766e;--accent-ink:#0b5852;--accent-wash:#e3f2f0;
+    --ok:#15803d;--ok-wash:#e6f4ea;--warn:#b45309;--warn-wash:#fbefdd;--danger:#be123c;--danger-wash:#fbe4e9;
+    --code-bg:#0f1620;--code-ink:#dbe4ee;--shadow:0 1px 2px rgba(16,24,32,.05), 0 8px 28px -18px rgba(16,24,32,.35);
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --ground:#0c1015;--surface:#141a21;--surface-2:#1a222b;--ink:#e6edf3;--muted:#9aa7b4;--faint:#6b7885;
+    --border:#232c36;--border-strong:#33404c;--accent:#2dd4bf;--accent-ink:#5eead4;--accent-wash:#123330;
+    --ok:#4ade80;--ok-wash:#12301d;--warn:#fbbf24;--warn-wash:#33270c;--danger:#fb7185;--danger-wash:#33161f;
+    --code-bg:#0a0e13;--code-ink:#dbe4ee;--shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -20px rgba(0,0,0,.8);
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .wrap{max-width:860px;margin:0 auto;padding:clamp(1.25rem,4vw,3rem) clamp(1rem,4vw,2rem) 5rem}
+
+  /* ---- header ---- */
+  header.masthead{border-bottom:1px solid var(--border);padding-bottom:2rem;margin-bottom:2.5rem}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent-ink);display:flex;align-items:center;gap:.6rem;margin-bottom:1.1rem}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--accent);display:inline-block}
+  h1{font-size:clamp(1.9rem,5vw,2.7rem);line-height:1.1;margin:0 0 .6rem;letter-spacing:-.02em;
+    font-weight:750;text-wrap:balance}
+  .lede{font-size:1.08rem;color:var(--muted);margin:0;max-width:60ch}
+  .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem}
+  .chip{font-family:var(--mono);font-size:.74rem;padding:.28rem .6rem;border:1px solid var(--border-strong);
+    border-radius:999px;color:var(--muted);background:var(--surface);white-space:nowrap}
+  .chip b{color:var(--ink);font-weight:600}
+
+  /* ---- sections ---- */
+  section{margin-bottom:3rem}
+  h2{font-size:1.32rem;letter-spacing:-.01em;margin:0 0 1rem;display:flex;align-items:baseline;gap:.7rem;font-weight:700}
+  h2 .num{font-family:var(--mono);font-size:.8rem;color:var(--accent);font-weight:600;
+    border:1px solid var(--accent);border-radius:5px;padding:.05rem .4rem;line-height:1.4}
+  h3{font-size:1rem;margin:0 0 .4rem;font-weight:650}
+  p{margin:0 0 1rem}
+  a{color:var(--accent-ink);text-decoration-thickness:1px;text-underline-offset:2px}
+
+  /* ---- code ---- */
+  .code{position:relative;background:var(--code-bg);border-radius:10px;margin:0 0 1.2rem;
+    box-shadow:var(--shadow);overflow:hidden;border:1px solid rgba(255,255,255,.04)}
+  .code .bar{display:flex;align-items:center;justify-content:space-between;
+    padding:.5rem .8rem;border-bottom:1px solid rgba(255,255,255,.07)}
+  .code .bar span{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:#8794a3}
+  .code .dots{display:flex;gap:.35rem}
+  .code .dots i{width:9px;height:9px;border-radius:50%;background:#3a4552;display:block}
+  .code pre{margin:0;padding:1rem 1.1rem;overflow-x:auto;font-family:var(--mono);font-size:.86rem;
+    line-height:1.7;color:var(--code-ink)}
+  .code code{font-family:inherit}
+  .c-com{color:var(--code-comment)}
+  .c-cmd{color:var(--code-accent)}
+  .copy{background:transparent;border:1px solid #33404c;color:#9aa7b4;font-family:var(--mono);
+    font-size:.68rem;padding:.2rem .55rem;border-radius:5px;cursor:pointer;transition:.15s}
+  .copy:hover{color:#dbe4ee;border-color:#55636f}
+  .copy.done{color:var(--code-accent);border-color:var(--code-accent)}
+
+  /* ---- callout / lead box ---- */
+  .lead-box{background:var(--accent-wash);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
+    border-radius:12px;padding:1.3rem 1.4rem;margin-bottom:1.4rem}
+  .lead-box p:last-child{margin-bottom:0}
+  .lead-box strong{color:var(--accent-ink)}
+
+  /* ---- table ---- */
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface);box-shadow:var(--shadow)}
+  table{border-collapse:collapse;width:100%;font-size:.92rem;min-width:520px}
+  th,td{text-align:left;padding:.72rem .95rem;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;background:var(--surface-2)}
+  tbody tr:last-child td{border-bottom:none}
+  td code,p code,li code{font-family:var(--mono);font-size:.85em;background:var(--surface-2);
+    padding:.1rem .35rem;border-radius:4px;border:1px solid var(--border)}
+  td b{font-weight:650}
+
+  /* ---- env var list ---- */
+  .env{display:grid;gap:.6rem}
+  .env-row{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:.2rem 1rem;
+    padding:.85rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:9px}
+  .env-row .k{font-family:var(--mono);font-weight:600;color:var(--accent-ink);font-size:.9rem}
+  .env-row .v{color:var(--muted);font-size:.92rem}
+  @media (max-width:520px){.env-row{grid-template-columns:1fr}}
+
+  /* ---- gotcha cards ---- */
+  .gotchas{display:grid;gap:1rem}
+  .gotcha{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--warn);
+    border-radius:0 10px 10px 0;padding:1.1rem 1.25rem;box-shadow:var(--shadow)}
+  .gotcha .tag{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--warn);font-weight:600;margin-bottom:.45rem;display:block}
+  .gotcha h3{margin-bottom:.4rem}
+  .gotcha p{margin-bottom:.5rem;font-size:.95rem;color:var(--muted)}
+  .gotcha p:last-child{margin-bottom:0}
+  .gotcha strong{color:var(--ink)}
+
+  ul.clean{margin:0 0 1rem;padding-left:1.2rem}
+  ul.clean li{margin-bottom:.35rem}
+
+  /* ---- steps ---- */
+  .steps{display:grid;gap:.9rem;counter-reset:step}
+  .step{display:grid;grid-template-columns:auto 1fr;gap:0 1rem;align-items:start;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.05rem 1.2rem;box-shadow:var(--shadow)}
+  .step::before{counter-increment:step;content:counter(step);font-family:var(--mono);font-weight:700;
+    font-size:.9rem;color:var(--accent-ink);background:var(--accent-wash);
+    border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
+    width:2rem;height:2rem;display:grid;place-items:center;border-radius:8px}
+  .step h3{margin:.15rem 0 .35rem;grid-column:2}
+  .step .body{grid-column:2}
+  .step .body p{margin:0 0 .6rem;font-size:.95rem;color:var(--muted)}
+  .step .body p:last-child{margin-bottom:0}
+  .step .body .code{margin-top:.7rem;margin-bottom:0}
+  .note{border-left:3px solid var(--accent);background:var(--accent-wash);
+    border-radius:0 9px 9px 0;padding:.8rem 1rem;font-size:.92rem;color:var(--ink);margin-top:.2rem}
+  .note strong{color:var(--accent-ink)}
+
+  footer{border-top:1px solid var(--border);margin-top:1rem;padding-top:1.5rem;
+    font-size:.85rem;color:var(--faint);font-family:var(--mono);letter-spacing:.02em}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">Claude Code · Agent Skills · Windows</div>
+    <h1>docx スキル 環境セットアップ</h1>
+    <p class="lede">Claude Code の <code>docx</code> スキルを Windows で動かすための依存環境。Word文書の作成・読取・編集・PDF化・画像化・変更履歴の確定まで動く状態にします。</p>
+    <div class="meta">
+      <span class="chip">Platform <b>Windows 10 / 11</b></span>
+      <span class="chip">Shell <b>PowerShell 7+</b></span>
+      <span class="chip">検証済 <b>日本語環境</b></span>
+      <span class="chip">冪等 <b>再実行OK</b></span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">TL;DR</span> 自動セットアップ</h2>
+    <div class="lead-box">
+      <p>前提として <strong>winget / uv / node(npm)</strong> が導入済みであること。無ければ下記を先に。冪等なスクリプトなので、<strong>何度実行しても安全</strong>です。</p>
+    </div>
+    <div class="code" data-code="winget install astral-sh.uv&#10;winget install OpenJS.NodeJS">
+      <div class="bar"><span>PowerShell · 前提（未導入なら）</span><button class="copy">copy</button></div>
+      <pre><code><span class="c-cmd">winget</span> install astral-sh.uv
+<span class="c-cmd">winget</span> install OpenJS.NodeJS</code></pre>
+    </div>
+    <div class="code" data-code="pwsh -File .\setup-docx-skill.ps1">
+      <div class="bar"><span>PowerShell · 実行（このフォルダで）</span><button class="copy">copy</button></div>
+      <pre><code><span class="c-cmd">pwsh</span> -File .\setup-docx-skill.ps1</code></pre>
+    </div>
+    <p>最後に <code>[SUCCESS]</code> が出れば完了。<strong>新しいターミナルを開き直す</strong>と PATH 等が反映されます。確認だけしたいときは <code>-VerifyOnly</code> を付けて実行します。</p>
+  </section>
+
+  <section>
+    <h2><span class="num">DEPLOY</span> チームへの展開</h2>
+    <div class="lead-box">
+      <p>このスクリプトが用意するのは <strong>依存環境だけ</strong>。<code>docx</code> スキル本体は Claude Code の<strong>プラグイン</strong>として別途入っている必要があります。次の順で案内してください。</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>前提ツール（未導入なら）</h3>
+        <div class="body">
+          <p>winget から uv と Node.js を入れる。</p>
+          <div class="code" data-code="winget install astral-sh.uv&#10;winget install OpenJS.NodeJS">
+            <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
+            <pre><code><span class="c-cmd">winget</span> install astral-sh.uv
+<span class="c-cmd">winget</span> install OpenJS.NodeJS</code></pre>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <h3>docx スキル（プラグイン）を導入</h3>
+        <div class="body">
+          <p>Claude Code 内で <code>/plugin</code> から anthropic-agent-skills の document-skills（docx を含む）を有効化する。<strong>これが無いと <code>scripts/office/*.py</code> のパスが存在せず、セットアップだけでは動きません。</strong></p>
+        </div>
+      </div>
+      <div class="step">
+        <h3>リポジトリを clone して実行</h3>
+        <div class="body">
+          <div class="code" data-code="git clone &lt;REPO_URL&gt; claude-docx-skill-setup&#10;cd claude-docx-skill-setup&#10;pwsh -File .\setup-docx-skill.ps1">
+            <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
+            <pre><code><span class="c-cmd">git</span> clone &lt;REPO_URL&gt; claude-docx-skill-setup
+<span class="c-cmd">cd</span> claude-docx-skill-setup
+<span class="c-cmd">pwsh</span> -File .\setup-docx-skill.ps1</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:1rem">
+      <strong>エージェント向けガイド。</strong> Claude がスキルを<em>正しく使う</em>ための実行時ルール（既定の <code>python</code> ではなく venv の python を使う 等）は <code>AGENTS.md</code> に置いています。マシン全体に効かせるには、その内容を各自の <code>~/.claude/CLAUDE.md</code> に取り込んでください。リポジトリ内で作業する場合は同梱 <code>CLAUDE.md</code>（<code>@AGENTS.md</code> を取り込み）が自動で読まれます。
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">01</span> 導入されるもの</h2>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>依存</th><th>用途</th><th>入手</th></tr></thead>
+        <tbody>
+          <tr><td><b>Python 3.12</b><br>(uv 管理) + 専用 venv に <code>lxml</code> / <code>defusedxml</code></td><td>XMLの展開・編集・検証</td><td><code>uv</code></td></tr>
+          <tr><td><b>pandoc</b></td><td>.docx のテキスト抽出・読取</td><td>winget <code>JohnMacFarlane.Pandoc</code></td></tr>
+          <tr><td><b>LibreOffice</b> (<code>soffice</code>)</td><td>.doc→.docx / PDF変換 / 変更履歴の確定</td><td>winget <code>TheDocumentFoundation.LibreOffice</code></td></tr>
+          <tr><td><b>Poppler</b> (<code>pdftoppm</code>)</td><td>PDF→画像化（見た目確認）</td><td>winget <code>oschwartz10612.Poppler</code></td></tr>
+          <tr><td><b>docx</b></td><td>新規Word文書の生成 (docx-js)</td><td><code>npm install -g docx</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> 設定される環境変数 (User)</h2>
+    <div class="env">
+      <div class="env-row"><div class="k">PATH</div><div class="v">pandoc / poppler / LibreOffice の各フォルダを追記</div></div>
+      <div class="env-row"><div class="k">NODE_PATH</div><div class="v"><code>%APPDATA%\npm\node_modules</code> — グローバル <code>require('docx')</code> の解決用</div></div>
+      <div class="env-row"><div class="k">PYTHONUTF8</div><div class="v"><code>1</code> — 日本語Windowsの cp932 エラー回避</div></div>
+    </div>
+    <p style="margin-top:1rem">専用 venv の Python: <code>%USERPROFILE%\.claude\skill-envs\docx\Scripts\python.exe</code></p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> 手動セットアップ</h2>
+    <p>自動スクリプトを使わず 1 つずつ行う場合。</p>
+    <div class="code" data-code="uv python install 3.12&#10;uv venv &quot;$env:USERPROFILE\.claude\skill-envs\docx&quot; --python 3.12&#10;uv pip install --python &quot;$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe&quot; lxml defusedxml&#10;winget install --id JohnMacFarlane.Pandoc -e&#10;winget install --id TheDocumentFoundation.LibreOffice -e&#10;winget install --id oschwartz10612.Poppler -e&#10;npm install -g docx&#10;[Environment]::SetEnvironmentVariable('NODE_PATH', &quot;$env:APPDATA\npm\node_modules&quot;, 'User')&#10;[Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')">
+      <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
+<pre><code><span class="c-com"># 1) Python + 専用 venv + パッケージ</span>
+<span class="c-cmd">uv</span> python install 3.12
+<span class="c-cmd">uv</span> venv "$env:USERPROFILE\.claude\skill-envs\docx" --python 3.12
+<span class="c-cmd">uv</span> pip install --python "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe" lxml defusedxml
+
+<span class="c-com"># 2) winget パッケージ</span>
+<span class="c-cmd">winget</span> install --id JohnMacFarlane.Pandoc -e
+<span class="c-cmd">winget</span> install --id TheDocumentFoundation.LibreOffice -e
+<span class="c-cmd">winget</span> install --id oschwartz10612.Poppler -e
+
+<span class="c-com"># 3) npm パッケージ</span>
+<span class="c-cmd">npm</span> install -g docx
+
+<span class="c-com"># 4) User 環境変数（PATH は版数フォルダを含むため .ps1 での自動解決を推奨）</span>
+[Environment]::SetEnvironmentVariable('NODE_PATH', "$env:APPDATA\npm\node_modules", 'User')
+[Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')</code></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> ハマりどころ</h2>
+    <p>今回の構築で実際に踏んだ落とし穴。チーム展開時の参考に。</p>
+    <div class="gotchas">
+      <div class="gotcha">
+        <span class="tag">Pitfall 01 · Shell</span>
+        <h3>Claude Code の <code>!</code> は PowerShell ではなく bash で動く</h3>
+        <p><code>!</code> プレフィックスのコマンドは Git Bash で実行されます。PowerShell 構文（<code>[Environment]::…</code>）を <code>!</code> で貼ると構文エラー。環境変数の永続設定は <strong>.ps1 スクリプト</strong> か <strong>PowerShell を直接起動</strong>して行う。</p>
+      </div>
+      <div class="gotcha">
+        <span class="tag">Pitfall 02 · Env</span>
+        <h3>環境変数の変更は「後から起動したプロセス」にしか効かない</h3>
+        <p>winget や <code>SetEnvironmentVariable</code> は Windows 側を更新するが、<strong>既に動いているターミナル / Claude Code</strong> は起動時の古いコピーを持ち続ける。反映にはターミナルを<strong>閉じて開き直す</strong>（PC 再起動までは不要）。</p>
+      </div>
+      <div class="gotcha">
+        <span class="tag">Pitfall 03 · PATH</span>
+        <h3>winget の「コマンドラインエイリアス」が作られないことがある</h3>
+        <p>Windows の<strong>開発者モードが無効</strong>だと <code>WinGet\Links</code> のシンボリックリンク作成が静かに失敗し、<code>pandoc</code> 等が PATH に出ない。本スクリプトは<strong>実体フォルダを直接 PATH に追加</strong>するため開発者モード不要。</p>
+      </div>
+      <div class="gotcha">
+        <span class="tag">Pitfall 04 · Versioning</span>
+        <h3>pandoc / poppler はバージョン番号入りフォルダ</h3>
+        <p>例: <code>…\pandoc-3.10\</code>、<code>…\poppler-25.07.0\</code>。<code>winget upgrade</code> で版数が変わり PATH が切れる。<strong>スクリプトを再実行</strong>すれば新フォルダを解決して自己修復する（LibreOffice / NODE_PATH / PYTHONUTF8 は影響なし）。</p>
+      </div>
+      <div class="gotcha">
+        <span class="tag">Pitfall 05 · Encoding</span>
+        <h3>日本語Windowsの <code>cp932</code> エラー</h3>
+        <p><code>PYTHONUTF8=1</code> 未設定だと <code>validate.py</code> 等が UTF-8/日本語XMLの読取で <code>'cp932' codec can't decode …</code> を出す。この変数の設定で解消。</p>
+      </div>
+      <div class="gotcha">
+        <span class="tag">Pitfall 06 · Python</span>
+        <h3>スキルスクリプトは venv の python で実行する</h3>
+        <p>SKILL.md には <code>python scripts/…</code> とあるが、Windows 既定の <code>python</code> は Microsoft Store のスタブ（実体なし）のことが多い。スキルの Python スクリプトは <code>…\.claude\skill-envs\docx\Scripts\python.exe</code> で実行する。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> 動作確認（エンドツーエンド）</h2>
+    <div class="code" data-code='$py = &quot;$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe&quot;&#10;$skill = &quot;$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx&quot;&#10;node -e &quot;const {Document,Packer,Paragraph,TextRun}=require(&apos;docx&apos;);const fs=require(&apos;fs&apos;);Packer.toBuffer(new Document({sections:[{children:[new Paragraph({children:[new TextRun(&apos;テスト 環境確認&apos;)]})]}]})).then(b=>fs.writeFileSync(&apos;test.docx&apos;,b))&quot;&#10;pandoc test.docx -t plain&#10;&amp; $py &quot;$skill\scripts\office\unpack.py&quot; test.docx unpacked&#10;&amp; $py &quot;$skill\scripts\office\validate.py&quot; test.docx'>
+      <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
+<pre><code>$py    = "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe"
+$skill = "$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx"
+
+<span class="c-com"># 生成 (docx-js)</span>
+<span class="c-cmd">node</span> -e "const {Document,Packer,Paragraph,TextRun}=require('docx');const fs=require('fs');Packer.toBuffer(new Document({sections:[{children:[new Paragraph({children:[new TextRun('テスト 環境確認')]})]}]})).then(b=>fs.writeFileSync('test.docx',b))"
+
+<span class="c-cmd">pandoc</span> test.docx -t plain                       <span class="c-com"># 読取</span>
+&amp; $py "$skill\scripts\office\unpack.py"   test.docx unpacked   <span class="c-com"># 展開</span>
+&amp; $py "$skill\scripts\office\validate.py" test.docx           <span class="c-com"># 検証</span></code></pre>
+    </div>
+    <div class="lead-box" style="background:var(--ok-wash);border-color:color-mix(in srgb,var(--ok) 35%,transparent)">
+      <p style="margin:0"><strong style="color:var(--ok)">✓ All validations PASSED!</strong> が出れば環境構築は完成です。</p>
+    </div>
+  </section>
+
+  <footer>
+    claude-docx-skill-setup · setup-docx-skill.ps1 / README.md / AGENTS.md / CLAUDE.md 同梱 · 再現手順はスクリプトが正
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.closest('.code').getAttribute('data-code') || '';
+      navigator.clipboard.writeText(code).then(function(){
+        var old = btn.textContent;
+        btn.textContent = 'copied'; btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = old; btn.classList.remove('done'); }, 1400);
+      });
+    });
+  });
+</script>
