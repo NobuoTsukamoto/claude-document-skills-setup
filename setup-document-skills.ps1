@@ -41,7 +41,7 @@ function Ok($m){   Write-Host "[ OK ] $m" -ForegroundColor Green }
 function Warn($m){ Write-Host "[WARN] $m" -ForegroundColor Yellow }
 function Fail($m){ Write-Host "[FAIL] $m" -ForegroundColor Red }
 
-$VenvDir = Join-Path $env:USERPROFILE '.claude\skill-envs\docx'
+$VenvDir = Join-Path $env:USERPROFILE '.claude\skill-envs\document-skills'
 $VenvPy  = Join-Path $VenvDir 'Scripts\python.exe'
 $NpmGlobalModules = Join-Path $env:APPDATA 'npm\node_modules'
 

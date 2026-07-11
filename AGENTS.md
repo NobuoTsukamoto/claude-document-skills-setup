@@ -11,13 +11,13 @@
 **専用 venv の Python** を使うこと（docx / pptx 共通。lxml・defusedxml・markitdown・Pillow 入り）:
 
 ```
-%USERPROFILE%\.claude\skill-envs\docx\Scripts\python.exe
+%USERPROFILE%\.claude\skill-envs\document-skills\Scripts\python.exe
 ```
 
 例:
 
 ```powershell
-& "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe" `
+& "$env:USERPROFILE\.claude\skill-envs\document-skills\Scripts\python.exe" `
     "$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx\scripts\office\validate.py" `
     file.docx
 ```

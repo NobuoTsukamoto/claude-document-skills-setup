@@ -267,7 +267,7 @@
       <div class="env-row"><div class="k">NODE_PATH</div><div class="v"><code>%APPDATA%\npm\node_modules</code> — グローバル <code>require('docx')</code> の解決用</div></div>
       <div class="env-row"><div class="k">PYTHONUTF8</div><div class="v"><code>1</code> — 日本語Windowsの cp932 エラー回避</div></div>
     </div>
-    <p style="margin-top:1rem">専用 venv の Python: <code>%USERPROFILE%\.claude\skill-envs\docx\Scripts\python.exe</code></p>
+    <p style="margin-top:1rem">専用 venv の Python: <code>%USERPROFILE%\.claude\skill-envs\document-skills\Scripts\python.exe</code></p>
   </section>
 
   <section>
@@ -302,7 +302,7 @@
       <div class="gotcha">
         <span class="tag">Pitfall 06 · Python</span>
         <h3>スキルスクリプトは venv の python で実行する</h3>
-        <p>SKILL.md には <code>python scripts/…</code> とあるが、Windows 既定の <code>python</code> は Microsoft Store のスタブ（実体なし）のことが多い。スキルの Python スクリプトは <code>…\.claude\skill-envs\docx\Scripts\python.exe</code> で実行する。</p>
+        <p>SKILL.md には <code>python scripts/…</code> とあるが、Windows 既定の <code>python</code> は Microsoft Store のスタブ（実体なし）のことが多い。スキルの Python スクリプトは <code>…\.claude\skill-envs\document-skills\Scripts\python.exe</code> で実行する。</p>
       </div>
       <div class="gotcha">
         <span class="tag">Pitfall 07 · LibreOffice</span>
@@ -319,9 +319,9 @@
 
   <section>
     <h2><span class="num">04</span> 動作確認（エンドツーエンド）</h2>
-    <div class="code" data-code='$py = &quot;$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe&quot;&#10;$skill = &quot;$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx&quot;&#10;node -e &quot;const {Document,Packer,Paragraph,TextRun}=require(&apos;docx&apos;);const fs=require(&apos;fs&apos;);Packer.toBuffer(new Document({sections:[{children:[new Paragraph({children:[new TextRun(&apos;テスト 環境確認&apos;)]})]}]})).then(b=>fs.writeFileSync(&apos;test.docx&apos;,b))&quot;&#10;pandoc test.docx -t plain&#10;&amp; $py &quot;$skill\scripts\office\unpack.py&quot; test.docx unpacked&#10;&amp; $py &quot;$skill\scripts\office\validate.py&quot; test.docx'>
+    <div class="code" data-code='$py = &quot;$env:USERPROFILE\.claude\skill-envs\document-skills\Scripts\python.exe&quot;&#10;$skill = &quot;$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx&quot;&#10;node -e &quot;const {Document,Packer,Paragraph,TextRun}=require(&apos;docx&apos;);const fs=require(&apos;fs&apos;);Packer.toBuffer(new Document({sections:[{children:[new Paragraph({children:[new TextRun(&apos;テスト 環境確認&apos;)]})]}]})).then(b=>fs.writeFileSync(&apos;test.docx&apos;,b))&quot;&#10;pandoc test.docx -t plain&#10;&amp; $py &quot;$skill\scripts\office\unpack.py&quot; test.docx unpacked&#10;&amp; $py &quot;$skill\scripts\office\validate.py&quot; test.docx'>
       <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
-<pre><code>$py    = "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe"
+<pre><code>$py    = "$env:USERPROFILE\.claude\skill-envs\document-skills\Scripts\python.exe"
 $skill = "$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx"
 
 <span class="c-com"># 生成 (docx-js)</span>
