@@ -271,31 +271,7 @@
   </section>
 
   <section>
-    <h2><span class="num">03</span> 手動セットアップ</h2>
-    <p>自動スクリプトを使わず 1 つずつ行う場合。</p>
-    <div class="code" data-code="uv python install 3.12&#10;uv venv &quot;$env:USERPROFILE\.claude\skill-envs\docx&quot; --python 3.12&#10;uv pip install --python &quot;$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe&quot; lxml defusedxml&#10;winget install --id JohnMacFarlane.Pandoc -e&#10;winget install --id TheDocumentFoundation.LibreOffice -e&#10;winget install --id oschwartz10612.Poppler -e&#10;npm install -g docx&#10;[Environment]::SetEnvironmentVariable('NODE_PATH', &quot;$env:APPDATA\npm\node_modules&quot;, 'User')&#10;[Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')">
-      <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
-<pre><code><span class="c-com"># 1) Python + 専用 venv + パッケージ</span>
-<span class="c-cmd">uv</span> python install 3.12
-<span class="c-cmd">uv</span> venv "$env:USERPROFILE\.claude\skill-envs\docx" --python 3.12
-<span class="c-cmd">uv</span> pip install --python "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe" lxml defusedxml
-
-<span class="c-com"># 2) winget パッケージ</span>
-<span class="c-cmd">winget</span> install --id JohnMacFarlane.Pandoc -e
-<span class="c-cmd">winget</span> install --id TheDocumentFoundation.LibreOffice -e
-<span class="c-cmd">winget</span> install --id oschwartz10612.Poppler -e
-
-<span class="c-com"># 3) npm パッケージ</span>
-<span class="c-cmd">npm</span> install -g docx
-
-<span class="c-com"># 4) User 環境変数（PATH は版数フォルダを含むため .ps1 での自動解決を推奨）</span>
-[Environment]::SetEnvironmentVariable('NODE_PATH', "$env:APPDATA\npm\node_modules", 'User')
-[Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')</code></pre>
-    </div>
-  </section>
-
-  <section>
-    <h2><span class="num">04</span> ハマりどころ</h2>
+    <h2><span class="num">03</span> ハマりどころ</h2>
     <p>今回の構築で実際に踏んだ落とし穴。チーム展開時の参考に。</p>
     <div class="gotchas">
       <div class="gotcha">
@@ -342,7 +318,7 @@
   </section>
 
   <section>
-    <h2><span class="num">05</span> 動作確認（エンドツーエンド）</h2>
+    <h2><span class="num">04</span> 動作確認（エンドツーエンド）</h2>
     <div class="code" data-code='$py = &quot;$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe&quot;&#10;$skill = &quot;$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx&quot;&#10;node -e &quot;const {Document,Packer,Paragraph,TextRun}=require(&apos;docx&apos;);const fs=require(&apos;fs&apos;);Packer.toBuffer(new Document({sections:[{children:[new Paragraph({children:[new TextRun(&apos;テスト 環境確認&apos;)]})]}]})).then(b=>fs.writeFileSync(&apos;test.docx&apos;,b))&quot;&#10;pandoc test.docx -t plain&#10;&amp; $py &quot;$skill\scripts\office\unpack.py&quot; test.docx unpacked&#10;&amp; $py &quot;$skill\scripts\office\validate.py&quot; test.docx'>
       <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
 <pre><code>$py    = "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe"

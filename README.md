@@ -101,29 +101,11 @@ Add-Content "$env:USERPROFILE\.claude\CLAUDE.md" "`n@$(Resolve-Path .\AGENTS.md)
 
 ---
 
-## 手動セットアップ（1つずつ）
+## 手動でやりたい場合
 
-自動スクリプトを使わず手で行う場合:
-
-```powershell
-# 1) Python + 専用 venv + パッケージ
-uv python install 3.12
-uv venv "$env:USERPROFILE\.claude\skill-envs\docx" --python 3.12
-uv pip install --python "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe" lxml defusedxml "markitdown[pptx]" Pillow
-
-# 2) winget パッケージ
-winget install --id JohnMacFarlane.Pandoc -e
-winget install --id TheDocumentFoundation.LibreOffice -e
-winget install --id oschwartz10612.Poppler -e
-
-# 3) npm パッケージ
-npm install -g docx pptxgenjs react-icons react react-dom sharp
-
-# 4) User 環境変数（PATH のフォルダは実際の版数に合わせる）
-[Environment]::SetEnvironmentVariable('NODE_PATH', "$env:APPDATA\npm\node_modules", 'User')
-[Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')
-# PATH は setup-document-skills.ps1 が版数フォルダを動的に解決するので、スクリプト利用を推奨
-```
+**手順の正は [setup-document-skills.ps1](./setup-document-skills.ps1) です。**
+セクションごとにコメント付きで書かれているので、上から読めばそのまま手動手順になります
+（PATH は版数入りフォルダを動的に解決するため、スクリプト実行を推奨）。
 
 ---
 
