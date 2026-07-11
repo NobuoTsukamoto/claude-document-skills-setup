@@ -7,7 +7,8 @@ Claude Code の **docx / pptx (Agent Skills)** を Windows で動かすための
 
 いずれも同じ venv・LibreOffice・Poppler・Node を共有します。
 
-> 対象: Windows 10/11・PowerShell 7+ 推奨。日本語環境で検証済み。
+> 対象: Windows 10/11。PowerShell 7 (`pwsh`) 推奨ですが、標準の Windows PowerShell 5.1 でも動きます
+> （その場合は `pwsh -File` を `powershell -File` に読み替え）。日本語環境で検証済み。
 
 ---
 

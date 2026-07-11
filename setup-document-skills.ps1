@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Claude Code の docx / pptx (Agent Skills) を Windows で動かすための依存環境を
     冪等にセットアップ・検証するスクリプト。
@@ -21,10 +21,14 @@
       node: winget install OpenJS.NodeJS   (または任意の方法)
 
 .NOTES
-    実行方法 (PowerShell 7+ 推奨):
-        pwsh -File .\setup-document-skills.ps1
+    実行方法 (PowerShell 7 推奨 / Windows PowerShell 5.1 でも可):
+        pwsh -File .\setup-document-skills.ps1        # PS7
+        powershell -File .\setup-document-skills.ps1  # PS5.1
     確認のみ (何も変更しない):
         pwsh -File .\setup-document-skills.ps1 -VerifyOnly
+
+    このファイルは UTF-8 (BOM付き) で保存すること。BOM を落とすと
+    Windows PowerShell 5.1 が日本語コメントを誤読して ParserError になる。
 #>
 [CmdletBinding()]
 param(
