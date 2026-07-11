@@ -22,9 +22,9 @@
 
 .NOTES
     実行方法 (PowerShell 7+ 推奨):
-        pwsh -File .\setup-docx-skill.ps1
+        pwsh -File .\setup-document-skills.ps1
     確認のみ (何も変更しない):
-        pwsh -File .\setup-docx-skill.ps1 -VerifyOnly
+        pwsh -File .\setup-document-skills.ps1 -VerifyOnly
 #>
 [CmdletBinding()]
 param(

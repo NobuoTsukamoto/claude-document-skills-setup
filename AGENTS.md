@@ -50,10 +50,10 @@ pdftoppm -jpeg -r 150 file.pdf slide      # PDF → slide-01.jpg, slide-02.jpg, 
 
 ## 依存が未整備・壊れているとき
 
-`claude-document-skills-setup\setup-docx-skill.ps1` を実行して再構築する（冪等・自己修復）。
+`claude-document-skills-setup\setup-document-skills.ps1` を実行して再構築する（冪等・自己修復）。
 `winget upgrade` 後に pandoc / poppler の PATH が切れた場合も、これで直る。
 
 ```powershell
-pwsh -File .\setup-docx-skill.ps1            # セットアップ / 修復
-pwsh -File .\setup-docx-skill.ps1 -VerifyOnly # 確認のみ
+pwsh -File .\setup-document-skills.ps1            # セットアップ / 修復
+pwsh -File .\setup-document-skills.ps1 -VerifyOnly # 確認のみ
 ```
