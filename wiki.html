@@ -1,4 +1,4 @@
-<title>docx スキル 環境セットアップ (Windows)</title>
+<title>docx / pptx スキル 環境セットアップ (Windows)</title>
 <style>
   :root{
     color-scheme: light dark;
@@ -177,7 +177,7 @@
   <header class="masthead">
     <div class="eyebrow">Claude Code · Agent Skills · Windows</div>
     <h1>docx スキル 環境セットアップ</h1>
-    <p class="lede">Claude Code の <code>docx</code> スキルを Windows で動かすための依存環境。Word文書の作成・読取・編集・PDF化・画像化・変更履歴の確定まで動く状態にします。</p>
+    <p class="lede">Claude Code の <code>docx</code> / <code>pptx</code> スキルを Windows で動かすための依存環境。Word文書の作成・読取・編集・PDF化・画像化、およびスライドの作成・読取・画像化まで動く状態にします。</p>
     <div class="meta">
       <span class="chip">Platform <b>Windows 10 / 11</b></span>
       <span class="chip">Shell <b>PowerShell 7+</b></span>
@@ -221,9 +221,9 @@
         </div>
       </div>
       <div class="step">
-        <h3>docx スキル（プラグイン）を導入</h3>
+        <h3>docx / pptx スキル（プラグイン）を導入</h3>
         <div class="body">
-          <p>Claude Code 内で <code>/plugin</code> から anthropic-agent-skills の document-skills（docx を含む）を有効化する。<strong>これが無いと <code>scripts/office/*.py</code> のパスが存在せず、セットアップだけでは動きません。</strong></p>
+          <p>Claude Code 内で <code>/plugin</code> から anthropic-agent-skills の document-skills（docx / pptx を含む）を有効化する。<strong>これが無いと <code>scripts/office/*.py</code> のパスが存在せず、セットアップだけでは動きません。</strong></p>
         </div>
       </div>
       <div class="step">
@@ -249,11 +249,12 @@
       <table>
         <thead><tr><th>依存</th><th>用途</th><th>入手</th></tr></thead>
         <tbody>
-          <tr><td><b>Python 3.12</b><br>(uv 管理) + 専用 venv に <code>lxml</code> / <code>defusedxml</code></td><td>XMLの展開・編集・検証</td><td><code>uv</code></td></tr>
+          <tr><td><b>Python 3.12</b><br>(uv 管理) + 専用 venv に <code>lxml</code> / <code>defusedxml</code> / <code>markitdown[pptx]</code> / <code>Pillow</code></td><td>XMLの展開・編集・検証 / pptxテキスト抽出・サムネイル</td><td><code>uv</code></td></tr>
           <tr><td><b>pandoc</b></td><td>.docx のテキスト抽出・読取</td><td>winget <code>JohnMacFarlane.Pandoc</code></td></tr>
           <tr><td><b>LibreOffice</b> (<code>soffice</code>)</td><td>.doc→.docx / PDF変換 / 変更履歴の確定</td><td>winget <code>TheDocumentFoundation.LibreOffice</code></td></tr>
           <tr><td><b>Poppler</b> (<code>pdftoppm</code>)</td><td>PDF→画像化（見た目確認）</td><td>winget <code>oschwartz10612.Poppler</code></td></tr>
           <tr><td><b>docx</b></td><td>新規Word文書の生成 (docx-js)</td><td><code>npm install -g docx</code></td></tr>
+          <tr><td><b>pptxgenjs</b> ほか<br><code>react-icons</code> / <code>react</code> / <code>react-dom</code> / <code>sharp</code></td><td>スライド生成・アイコン描画</td><td><code>npm install -g …</code></td></tr>
         </tbody>
       </table>
     </div>
@@ -326,6 +327,16 @@
         <span class="tag">Pitfall 06 · Python</span>
         <h3>スキルスクリプトは venv の python で実行する</h3>
         <p>SKILL.md には <code>python scripts/…</code> とあるが、Windows 既定の <code>python</code> は Microsoft Store のスタブ（実体なし）のことが多い。スキルの Python スクリプトは <code>…\.claude\skill-envs\docx\Scripts\python.exe</code> で実行する。</p>
+      </div>
+      <div class="gotcha">
+        <span class="tag">Pitfall 07 · LibreOffice</span>
+        <h3>同梱の <code>soffice.py</code> は Windows 非対応 → <code>soffice</code> 直呼び</h3>
+        <p><code>scripts/office/soffice.py</code> は <code>socket.AF_UNIX</code> を使う Unix 専用ラッパーで、Windows では <code>AttributeError</code> で失敗する。PDF変換・画像化は <code>soffice --headless --convert-to pdf …</code> を<strong>直接</strong>呼ぶ（pptx の画像プレビューも同様）。</p>
+      </div>
+      <div class="gotcha">
+        <span class="tag">Pitfall 08 · pptxgenjs</span>
+        <h3>色の <code>#</code> の扱いが逆：pptxgenjs は無し / react-icons は必須</h3>
+        <p>pptxgenjs のhex色は <code>"2DD4BF"</code>（<code>#</code> を付けると破損）。一方 <strong>react-icons に渡す色は <code>#2DD4BF</code> と <code>#</code> 必須</strong>（無いと黒にフォールバックし低コントラスト化）。日本語は <code>fontFace</code> に日本語フォント（例 <code>Yu Gothic UI</code>）を指定する。</p>
       </div>
     </div>
   </section>

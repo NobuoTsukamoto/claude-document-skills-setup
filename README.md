@@ -1,7 +1,11 @@
-# Claude Code `docx` スキル 環境セットアップ (Windows)
+# Claude Code `docx` / `pptx` スキル 環境セットアップ (Windows)
 
-Claude Code の **docx (Agent Skill)** を Windows で動かすための依存環境を用意する手順です。
-Word文書の「作成 / 読取 / 編集 / PDF化 / 画像化 / 変更履歴の確定」まで動く状態になります。
+Claude Code の **docx / pptx (Agent Skills)** を Windows で動かすための依存環境を用意する手順です。
+
+- **docx**: Word文書の「作成 / 読取 / 編集 / PDF化 / 画像化 / 変更履歴の確定」
+- **pptx**: スライドの「作成 / 読取 / 画像化」（pptxgenjs・markitdown・アイコン描画）
+
+いずれも同じ venv・LibreOffice・Poppler・Node を共有します。
 
 > 対象: Windows 10/11・PowerShell 7+ 推奨。日本語環境で検証済み。
 
@@ -44,10 +48,10 @@ winget install astral-sh.uv
 winget install OpenJS.NodeJS
 ```
 
-### 2. docx スキル（プラグイン）を導入
+### 2. docx / pptx スキル（プラグイン）を導入
 
 Claude Code 内で anthropic-agent-skills マーケットプレイスのスキルを有効化します
-（`/plugin` から docx を含む document-skills を追加）。これが入っていないと
+（`/plugin` から docx / pptx を含む document-skills を追加）。これが入っていないと
 `scripts/office/*.py` のパスが存在せず、セットアップだけでは動きません。
 
 ### 3. このリポジトリを clone して実行
@@ -78,16 +82,17 @@ Add-Content "$env:USERPROFILE\.claude\CLAUDE.md" "`n@$(Resolve-Path .\AGENTS.md)
 
 | 依存 | 用途 | 入手 |
 |------|------|------|
-| Python 3.12 (uv 管理) + 専用 venv に `lxml` / `defusedxml` | XMLの展開・編集・検証 | `uv` |
+| Python 3.12 (uv 管理) + 専用 venv に `lxml` / `defusedxml` / `markitdown[pptx]` / `Pillow` | XMLの展開・編集・検証 / pptxテキスト抽出・サムネイル | `uv` |
 | pandoc | .docx のテキスト抽出・読取 | winget `JohnMacFarlane.Pandoc` |
 | LibreOffice (`soffice`) | .doc→.docx / PDF変換 / 変更履歴の確定 | winget `TheDocumentFoundation.LibreOffice` |
 | Poppler (`pdftoppm`) | PDF→画像化（見た目確認） | winget `oschwartz10612.Poppler` |
 | docx | 新規Word文書の生成 (docx-js) | `npm install -g docx` |
+| pptxgenjs / react-icons / react / react-dom / sharp | スライド生成・アイコン描画 | `npm install -g …` |
 
 設定される **User 環境変数**:
 
 - `PATH` … pandoc / poppler / LibreOffice の各フォルダを追記
-- `NODE_PATH` = `%APPDATA%\npm\node_modules`（グローバル `require('docx')` の解決用）
+- `NODE_PATH` = `%APPDATA%\npm\node_modules`（グローバル `require('docx')` / `require('pptxgenjs')` の解決用）
 - `PYTHONUTF8` = `1`（日本語Windowsの cp932 エラー回避）
 
 専用 venv の Python:
@@ -103,7 +108,7 @@ Add-Content "$env:USERPROFILE\.claude\CLAUDE.md" "`n@$(Resolve-Path .\AGENTS.md)
 # 1) Python + 専用 venv + パッケージ
 uv python install 3.12
 uv venv "$env:USERPROFILE\.claude\skill-envs\docx" --python 3.12
-uv pip install --python "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe" lxml defusedxml
+uv pip install --python "$env:USERPROFILE\.claude\skill-envs\docx\Scripts\python.exe" lxml defusedxml "markitdown[pptx]" Pillow
 
 # 2) winget パッケージ
 winget install --id JohnMacFarlane.Pandoc -e
@@ -111,7 +116,7 @@ winget install --id TheDocumentFoundation.LibreOffice -e
 winget install --id oschwartz10612.Poppler -e
 
 # 3) npm パッケージ
-npm install -g docx
+npm install -g docx pptxgenjs react-icons react react-dom sharp
 
 # 4) User 環境変数（PATH のフォルダは実際の版数に合わせる）
 [Environment]::SetEnvironmentVariable('NODE_PATH', "$env:APPDATA\npm\node_modules", 'User')
@@ -155,6 +160,21 @@ Windowsの **開発者モードが無効**だと winget のシンボリックリ
 SKILL.md には `python scripts/...` とありますが、Windowsの既定 `python` は
 Microsoft Store のスタブ（実体なし）のことが多いです。スキルの Python スクリプトは
 `%USERPROFILE%\.claude\skill-envs\docx\Scripts\python.exe` で実行してください。
+
+### 7. スキル同梱の `soffice.py` は **Windows非対応** → `soffice` を直呼び
+`scripts/office/soffice.py` は `socket.AF_UNIX` を使う Unix 専用ラッパーで、Windowsでは
+`AttributeError: module 'socket' has no attribute 'AF_UNIX'` で失敗します。PDF変換・画像化は
+`soffice` を直接呼んでください（pptx の画像プレビューでも同様）。
+
+```powershell
+soffice --headless --convert-to pdf --outdir . file.pptx
+pdftoppm -jpeg -r 150 file.pdf slide      # -> slide-01.jpg, slide-02.jpg, ...
+```
+
+### 8. pptxgenjs の色は `#` なし・react-icons は `#` あり
+pptxgenjs のhex色は `"2DD4BF"`（`#` を付けるとファイル破損）。一方 **react-icons に渡す色は
+`#2DD4BF` と `#` 必須**（CSSカラー。無いと黒にフォールバックし、暗い背景で低コントラストになる）。
+日本語は `fontFace` に日本語フォント（例 `"Yu Gothic UI"`）を指定する。
 
 ---
 
