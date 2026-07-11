@@ -1,11 +1,11 @@
 ﻿<#
 .SYNOPSIS
-    Claude Code の docx / pptx (Agent Skills) を Windows で動かすための依存環境を
+    Claude Code の docx / pptx / xlsx (Agent Skills) を Windows で動かすための依存環境を
     冪等にセットアップ・検証するスクリプト。
 
 .DESCRIPTION
     以下を導入・設定します（既に入っているものはスキップ）:
-      - Python 3.12 (uv 管理) + 専用 venv に lxml / defusedxml / markitdown[pptx] / Pillow
+      - Python 3.12 (uv 管理) + 専用 venv に lxml / defusedxml / markitdown[pptx] / Pillow / openpyxl
       - pandoc              (winget: JohnMacFarlane.Pandoc)
       - LibreOffice         (winget: TheDocumentFoundation.LibreOffice)
       - Poppler / pdftoppm  (winget: oschwartz10612.Poppler)
@@ -13,8 +13,9 @@
       - User 環境変数: PATH 追記 / NODE_PATH / PYTHONUTF8=1
 
     docx: 文書の作成/読取/編集/PDF化。pptx: スライドの作成/読取/画像化。
-    （markitdown=pptxテキスト抽出, Pillow=サムネイル, pptxgenjs=スライド生成,
-      react-icons/sharp=アイコン描画）
+    xlsx: ブックの作成/読取/再計算検証。
+    （markitdown=pptxテキスト抽出, Pillow=サムネイル, openpyxl=xlsx操作,
+      pptxgenjs=スライド生成, react-icons/sharp=アイコン描画）
 
     前提: winget, uv, node/npm が導入済みであること。
       uv:   winget install astral-sh.uv
@@ -75,8 +76,8 @@ if(-not $VerifyOnly){
         uv venv $VenvDir --python 3.12 | Out-Host
     } else { Ok 'venv は既に存在' }
 
-    Info 'Python パッケージ (lxml / defusedxml / markitdown[pptx] / Pillow) を venv に導入中...'
-    uv pip install --python $VenvPy lxml defusedxml "markitdown[pptx]" Pillow | Out-Host
+    Info 'Python パッケージ (lxml / defusedxml / markitdown[pptx] / Pillow / openpyxl) を venv に導入中...'
+    uv pip install --python $VenvPy lxml defusedxml "markitdown[pptx]" Pillow openpyxl | Out-Host
 
     # -----------------------------------------------------------------------
     # 2) winget パッケージ (pandoc / LibreOffice / Poppler)
@@ -134,10 +135,10 @@ foreach($c in 'pandoc','soffice','pdftoppm','node','npm'){
     if($p){ Ok "$c -> $p" } else { Fail "$c が PATH にありません"; $allOk = $false }
 }
 
-# venv python + パッケージ (lxml/defusedxml=docx, markitdown/PIL=pptx)
+# venv python + パッケージ (lxml/defusedxml=docx, markitdown/PIL=pptx, openpyxl=xlsx)
 if(Test-Path $VenvPy){
-    $r = & $VenvPy -c "import lxml,defusedxml,markitdown,PIL;print('ok')" 2>&1
-    if($r -match 'ok'){ Ok "venv python + lxml/defusedxml/markitdown/Pillow -> $VenvPy" } else { Fail "venv python パッケージ NG: $r"; $allOk = $false }
+    $r = & $VenvPy -c "import lxml,defusedxml,markitdown,PIL,openpyxl;print('ok')" 2>&1
+    if($r -match 'ok'){ Ok "venv python + lxml/defusedxml/markitdown/Pillow/openpyxl -> $VenvPy" } else { Fail "venv python パッケージ NG: $r"; $allOk = $false }
 } else { Fail "venv python が見つかりません: $VenvPy"; $allOk = $false }
 
 # node パッケージ (docx / pptxgenjs / sharp)
@@ -150,7 +151,7 @@ foreach($mod in 'docx','pptxgenjs','sharp'){
 "PYTHONUTF8 = $env:PYTHONUTF8"
 
 if($allOk){
-    Write-Host "`n[SUCCESS] docx / pptx スキルの依存環境はすべて揃っています。" -ForegroundColor Green
+    Write-Host "`n[SUCCESS] docx / pptx / xlsx スキルの依存環境はすべて揃っています。" -ForegroundColor Green
     Write-Host "         新しいターミナルを開けば PATH 等が反映されます。" -ForegroundColor Green
     exit 0
 } else {

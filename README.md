@@ -1,9 +1,10 @@
-# Claude Code `docx` / `pptx` スキル 環境セットアップ (Windows)
+# Claude Code `docx` / `pptx` / `xlsx` スキル 環境セットアップ (Windows)
 
-Claude Code の **docx / pptx (Agent Skills)** を Windows で動かすための依存環境を用意する手順です。
+Claude Code の **docx / pptx / xlsx (Agent Skills)** を Windows で動かすための依存環境を用意する手順です。
 
 - **docx**: Word文書の「作成 / 読取 / 編集 / PDF化 / 画像化 / 変更履歴の確定」
 - **pptx**: スライドの「作成 / 読取 / 画像化」（pptxgenjs・markitdown・アイコン描画）
+- **xlsx**: Excelブックの「作成 / 読取 / 数式の再計算検証」（openpyxl・LibreOffice再計算）
 
 いずれも同じ venv・LibreOffice・Poppler・Node を共有します。
 
@@ -49,10 +50,10 @@ winget install astral-sh.uv
 winget install OpenJS.NodeJS
 ```
 
-### 2. docx / pptx スキル（プラグイン）を導入
+### 2. docx / pptx / xlsx スキル（プラグイン）を導入
 
 Claude Code 内で anthropic-agent-skills マーケットプレイスのスキルを有効化します
-（`/plugin` から docx / pptx を含む document-skills を追加）。これが入っていないと
+（`/plugin` から docx / pptx / xlsx を含む document-skills を追加）。これが入っていないと
 `scripts/office/*.py` のパスが存在せず、セットアップだけでは動きません。
 
 ### 3. このリポジトリを clone して実行
@@ -83,7 +84,7 @@ Add-Content "$env:USERPROFILE\.claude\CLAUDE.md" "`n@$(Resolve-Path .\AGENTS.md)
 
 | 依存 | 用途 | 入手 |
 |------|------|------|
-| Python 3.12 (uv 管理) + 専用 venv に `lxml` / `defusedxml` / `markitdown[pptx]` / `Pillow` | XMLの展開・編集・検証 / pptxテキスト抽出・サムネイル | `uv` |
+| Python 3.12 (uv 管理) + 専用 venv に `lxml` / `defusedxml` / `markitdown[pptx]` / `Pillow` / `openpyxl` | XMLの展開・編集・検証 / pptxテキスト抽出・サムネイル / xlsx操作 | `uv` |
 | pandoc | .docx のテキスト抽出・読取 | winget `JohnMacFarlane.Pandoc` |
 | LibreOffice (`soffice`) | .doc→.docx / PDF変換 / 変更履歴の確定 | winget `TheDocumentFoundation.LibreOffice` |
 | Poppler (`pdftoppm`) | PDF→画像化（見た目確認） | winget `oschwartz10612.Poppler` |
@@ -158,6 +159,18 @@ pdftoppm -jpeg -r 150 file.pdf slide      # -> slide-01.jpg, slide-02.jpg, ...
 pptxgenjs のhex色は `"2DD4BF"`（`#` を付けるとファイル破損）。一方 **react-icons に渡す色は
 `#2DD4BF` と `#` 必須**（CSSカラー。無いと黒にフォールバックし、暗い背景で低コントラストになる）。
 日本語は `fontFace` に日本語フォント（例 `"Yu Gothic UI"`）を指定する。
+
+### 9. xlsx の `recalc.py` は Windows 非対応 → マクロを直接配置して再計算
+xlsx スキル必須手順の `scripts/recalc.py` は、`soffice.py`（Pitfall 7 と同じ `AF_UNIX` 依存）を
+import し、マクロ配置先も macOS/Linux パス固定のため Windows では動きません。代わりに:
+
+1. 再計算マクロ（`RecalculateAndSave` — recalc.py 内のものと同一）を
+   `%APPDATA%\LibreOffice\4\user\basic\Standard\Module1.xba` に書き込む
+2. `soffice --headless --norestore "vnd.sun.star.script:Standard.Module1.RecalculateAndSave?language=Basic&location=application" file.xlsx`
+3. openpyxl の `load_workbook(f, data_only=True)` でエラー値（`#REF!` 等）と計算結果を確認
+
+なお `validate.py` は xlsx 非対応（docx / pptx のみ）。xlsx の検証は上記の再計算＋openpyxl 確認が正です。
+具体的な手順は [AGENTS.md](./AGENTS.md) を参照。
 
 ---
 
