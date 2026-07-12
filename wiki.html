@@ -239,7 +239,7 @@
       </div>
     </div>
     <div class="note" style="margin-top:1rem">
-      <strong>エージェント向けガイド。</strong> Claude がスキルを<em>正しく使う</em>ための実行時ルール（既定の <code>python</code> ではなく venv の python を使う 等）は <code>AGENTS.md</code> に置いています。マシン全体に効かせるには、その内容を各自の <code>~/.claude/CLAUDE.md</code> に取り込んでください。リポジトリ内で作業する場合は同梱 <code>CLAUDE.md</code>（<code>@AGENTS.md</code> を取り込み）が自動で読まれます。
+      <strong>仕上げの2ステップ（手動）。</strong> セットアップ後、<strong>PreToolUse フックの登録</strong>と <strong><code>~/.claude/CLAUDE.md</code> への1行追加</strong>を行う（下の「エージェント向け安全装置」参照）。補完スキル <code>document-skills-windows</code> はスクリプトが <code>~/.claude/skills</code> に自動配置する。なお実行時ルール全文は <code>AGENTS.md</code> にあり、リポジトリ内で作業する場合は同梱 <code>CLAUDE.md</code> が自動で読む。以前案内していた「AGENTS.md 全文を各自の <code>~/.claude/CLAUDE.md</code> に import」は常時コンテキストに載って重いため、現在はフック + 補完スキル + 1行を推奨。
     </div>
   </section>
 
@@ -377,7 +377,7 @@ $skill = "$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\s
 &amp; $py "$skill\scripts\office\validate.py" test.docx           <span class="c-com"># 検証</span></code></pre>
     </div>
     <div class="lead-box" style="background:var(--ok-wash);border-color:color-mix(in srgb,var(--ok) 35%,transparent)">
-      <p style="margin:0"><strong style="color:var(--ok)">✓ All validations PASSED!</strong> が出れば環境構築は完成です。</p>
+      <p style="margin:0"><strong style="color:var(--ok)">✓ All validations PASSED!</strong> が出れば docx は完成。xlsx は数式入りブックを作って <code>recalc_windows.py</code> にかけ、<code>"status": "success"</code> が出ればOK。</p>
     </div>
   </section>
 

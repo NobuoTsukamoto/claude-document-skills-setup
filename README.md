@@ -36,12 +36,17 @@ pwsh -File .\setup-document-skills.ps1 -VerifyOnly
 
 最後に `[SUCCESS]` が出れば完了。**新しいターミナルを開き直す**と PATH 等が反映されます。
 
+依存環境のほかに補完スキルも自動配置されます。仕上げに **PreToolUse フックの登録**と
+**`~/.claude/CLAUDE.md` への1行追加**（どちらも手動・後述の
+[エージェント向けの安全装置](#エージェント向けの安全装置フック--補完スキル) 参照）を行ってください。
+
 ---
 
-## チームへの展開（3ステップ）
+## チームへの展開（5ステップ）
 
-このスクリプトが用意するのは **依存環境だけ** です。`docx` スキル本体は Claude Code の
-プラグインとして別途入っている必要があります。teammate には次の順で案内してください。
+このスクリプトが用意するのは **依存環境と補完スキル** です。docx / pptx / xlsx スキル本体は
+Claude Code のプラグインとして別途入っている必要があります。teammate には次の順で案内してください。
+（1〜3 が環境構築、4〜5 が Claude にスキルを確実に・正しく使わせるための設定です）
 
 ### 1. 前提ツール（未導入なら）
 
@@ -64,19 +69,25 @@ cd claude-document-skills-setup
 pwsh -File .\setup-document-skills.ps1
 ```
 
-### （推奨）エージェント向けガイドを効かせる
+依存環境に加えて、補完スキル `document-skills-windows` が `~/.claude/skills` に自動配置されます。
 
-Claude がスキルを**正しく使う**ための実行時ルールを [AGENTS.md](./AGENTS.md) に置いています
-（既定の `python` ではなく venv の python を使う、等）。マシン全体に効かせるには、
-その内容を各自の `~/.claude/CLAUDE.md` に取り込んでください。
+### 4. PreToolUse フックを登録
 
-```powershell
-# 例: ユーザーレベルの CLAUDE.md からリポジトリの AGENTS.md を取り込む
-Add-Content "$env:USERPROFILE\.claude\CLAUDE.md" "`n@$(Resolve-Path .\AGENTS.md)"
-```
+Windows で必ず失敗するコマンドをブロックする安全装置です。
+`~/.claude/settings.json` への登録方法は
+[エージェント向けの安全装置](#エージェント向けの安全装置フック--補完スキル) を参照
+（**パスはスラッシュ区切り必須**）。
 
-> このリポジトリ内で Claude Code を動かす場合は、同梱の `CLAUDE.md`（`@AGENTS.md` を取り込み）が
-> 自動で読まれるため、追加設定は不要です。
+### 5. `~/.claude/CLAUDE.md` に1行追加
+
+スキルの読み飛ばし防止です。同セクションの
+[スキル読み込みを確実にする1行](#推奨スキル読み込みを確実にする1行) を参照。
+
+> **AGENTS.md について**: 実行時ルールの全文は [AGENTS.md](./AGENTS.md) にあり、
+> このリポジトリ内で Claude Code を動かす場合は同梱の `CLAUDE.md`（`@AGENTS.md` 取り込み）が
+> 自動で読まれます。以前はこれを各自の `~/.claude/CLAUDE.md` に import する方式を
+> 案内していましたが、**常時コンテキストに載って重いため、現在は上記 4〜5
+> （フック + 補完スキル + 1行）を推奨**します。内容は補完スキルと同等です。
 
 ---
 
@@ -99,6 +110,11 @@ Add-Content "$env:USERPROFILE\.claude\CLAUDE.md" "`n@$(Resolve-Path .\AGENTS.md)
 
 専用 venv の Python:
 `%USERPROFILE%\.claude\skill-envs\document-skills\Scripts\python.exe`
+
+あわせて配置されるもの:
+
+- 補完スキル `document-skills-windows` → `%USERPROFILE%\.claude\skills\document-skills-windows`
+  （SKILL.md + `recalc_windows.py`。詳細は後述の「エージェント向けの安全装置」）
 
 ---
 
@@ -248,4 +264,10 @@ pandoc test.docx -t plain                       # 読取
 & $py "$skill\scripts\office\validate.py" test.docx          # 検証 -> All validations PASSED!
 ```
 
-`All validations PASSED!` が出れば完成です。
+`All validations PASSED!` が出れば docx は完成です。xlsx の再計算も確認する場合:
+
+```powershell
+# 数式入りの test.xlsx を作って再計算 -> "status": "success" が出ればOK
+& $py -c "import openpyxl;wb=openpyxl.Workbook();ws=wb.active;ws['A1']=1;ws['A2']=2;ws['A3']='=SUM(A1:A2)';wb.save('test.xlsx')"
+& $py "$env:USERPROFILE\.claude\skills\document-skills-windows\scripts\recalc_windows.py" test.xlsx
+```
