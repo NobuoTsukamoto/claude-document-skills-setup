@@ -337,8 +337,8 @@
       <div class="step">
         <h3>PreToolUse フック <code>hooks/office-windows-guard.ps1</code></h3>
         <div class="body">
-          <p>Windows で必ず失敗するコマンド（<code>soffice.py</code> / <code>recalc.py</code>）の実行を<strong>直前にブロック</strong>し、正しい代替手順を Claude に伝える決定論的ガード。普段のコンテキストコストはゼロ。<code>~/.claude/settings.json</code> に登録する（新しいセッションから有効）。</p>
-          <div class="code" data-code='{&#10;  &quot;hooks&quot;: {&#10;    &quot;PreToolUse&quot;: [&#10;      {&#10;        &quot;matcher&quot;: &quot;Bash|PowerShell&quot;,&#10;        &quot;hooks&quot;: [&#10;          {&#10;            &quot;type&quot;: &quot;command&quot;,&#10;            &quot;command&quot;: &quot;pwsh -NoProfile -File C:\\path\\to\\claude-document-skills-setup\\hooks\\office-windows-guard.ps1&quot;&#10;          }&#10;        ]&#10;      }&#10;    ]&#10;  }&#10;}'>
+          <p>Windows で必ず失敗するコマンド（<code>soffice.py</code> / <code>recalc.py</code>）の実行を<strong>直前にブロック</strong>し、正しい代替手順を Claude に伝える決定論的ガード。普段のコンテキストコストはゼロ。<code>~/.claude/settings.json</code> に登録する（新しいセッションから有効）。<strong>パスは必ずスラッシュ区切り（<code>C:/...</code>）で書く</strong> — フックコマンドはシェル経由で実行されるため、バックスラッシュはエスケープとして除去され「script file not recognized」で静かに失敗する。</p>
+          <div class="code" data-code='{&#10;  &quot;hooks&quot;: {&#10;    &quot;PreToolUse&quot;: [&#10;      {&#10;        &quot;matcher&quot;: &quot;Bash|PowerShell&quot;,&#10;        &quot;hooks&quot;: [&#10;          {&#10;            &quot;type&quot;: &quot;command&quot;,&#10;            &quot;command&quot;: &quot;pwsh -NoProfile -File C:/path/to/claude-document-skills-setup/hooks/office-windows-guard.ps1&quot;&#10;          }&#10;        ]&#10;      }&#10;    ]&#10;  }&#10;}'>
             <div class="bar"><span>~/.claude/settings.json（パスは clone 先に合わせる）</span><button class="copy">copy</button></div>
             <pre><code>{
   "hooks": {
@@ -348,7 +348,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File C:\\path\\to\\claude-document-skills-setup\\hooks\\office-windows-guard.ps1"
+            "command": "pwsh -NoProfile -File C:/path/to/claude-document-skills-setup/hooks/office-windows-guard.ps1"
           }
         ]
       }
@@ -356,6 +356,7 @@
   }
 }</code></pre>
           </div>
+          <p style="margin-top:.7rem">あわせて <code>~/.claude/CLAUDE.md</code> に「.docx/.pptx/.xlsx を扱うときは document-skills スキルと document-skills-windows を必ず Skill ツールで読み込む」の1行を入れておくと、スキルの読み飛ばし（COM 自動化などの独自ルート探索）を防げる。</p>
         </div>
       </div>
     </div>
