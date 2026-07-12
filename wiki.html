@@ -316,14 +316,53 @@
       </div>
       <div class="gotcha">
         <span class="tag">Pitfall 09 · xlsx</span>
-        <h3>xlsx の <code>recalc.py</code> は Windows 非対応 → マクロを直接配置して再計算</h3>
-        <p>xlsx スキル必須手順の <code>scripts/recalc.py</code> は、<code>soffice.py</code>（Pitfall 07 と同じ <code>AF_UNIX</code> 依存）を import し、マクロ配置先も macOS/Linux パス固定のため Windows では動かない。代わりに ① 再計算マクロ（<code>RecalculateAndSave</code>）を <code>%APPDATA%\LibreOffice\4\user\basic\Standard\Module1.xba</code> に書き込み、② <code>soffice --headless --norestore "vnd.sun.star.script:Standard.Module1.RecalculateAndSave?language=Basic&amp;location=application" file.xlsx</code> を直呼び、③ openpyxl の <code>data_only=True</code> でエラー値と計算結果を確認する。<code>validate.py</code> は xlsx 非対応（docx / pptx のみ）。手順の詳細は <code>AGENTS.md</code> 参照。</p>
+        <h3>xlsx の <code>recalc.py</code> は Windows 非対応 → 同梱の <code>recalc_windows.py</code> を使う</h3>
+        <p>xlsx スキル必須手順の <code>scripts/recalc.py</code> は、<code>soffice.py</code>（Pitfall 07 と同じ <code>AF_UNIX</code> 依存）を import し、マクロ配置先も macOS/Linux パス固定のため Windows では動かない。補完スキル同梱の <code>recalc_windows.py</code> が同じこと（再計算マクロ配置 → <code>soffice</code> 直呼び → openpyxl 検証）を1コマンドで行い、公式と同形式の JSON を返す。<code>validate.py</code> は xlsx 非対応（docx / pptx のみ）なので、xlsx の検証はこの再計算＋openpyxl 確認が正。</p>
       </div>
     </div>
   </section>
 
   <section>
-    <h2><span class="num">04</span> 動作確認（エンドツーエンド）</h2>
+    <h2><span class="num">04</span> エージェント向け安全装置（フック + 補完スキル）</h2>
+    <div class="lead-box">
+      <p>上のハマりどころを <strong>Claude 自身に踏ませない</strong>ための2段構え。公式スキル本体のファイルは一切含みません（ライセンス上、複製・改変・再配布が不可のため）。</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>補完スキル <code>document-skills-windows</code></h3>
+        <div class="body">
+          <p>公式 docx / pptx / xlsx スキルと<strong>併用する</strong>自作スキル。venv python の使用・<code>soffice</code> 直呼び・<code>recalc_windows.py</code> などの回避策を、文書作成タスクの時だけオンデマンドで読み込ませる（CLAUDE.md 常駐より軽い）。<code>setup-document-skills.ps1</code> が <code>~/.claude/skills</code> に自動配置する。</p>
+        </div>
+      </div>
+      <div class="step">
+        <h3>PreToolUse フック <code>hooks/office-windows-guard.ps1</code></h3>
+        <div class="body">
+          <p>Windows で必ず失敗するコマンド（<code>soffice.py</code> / <code>recalc.py</code>）の実行を<strong>直前にブロック</strong>し、正しい代替手順を Claude に伝える決定論的ガード。普段のコンテキストコストはゼロ。<code>~/.claude/settings.json</code> に登録する（新しいセッションから有効）。</p>
+          <div class="code" data-code='{&#10;  &quot;hooks&quot;: {&#10;    &quot;PreToolUse&quot;: [&#10;      {&#10;        &quot;matcher&quot;: &quot;Bash|PowerShell&quot;,&#10;        &quot;hooks&quot;: [&#10;          {&#10;            &quot;type&quot;: &quot;command&quot;,&#10;            &quot;command&quot;: &quot;pwsh -NoProfile -File C:\\path\\to\\claude-document-skills-setup\\hooks\\office-windows-guard.ps1&quot;&#10;          }&#10;        ]&#10;      }&#10;    ]&#10;  }&#10;}'>
+            <div class="bar"><span>~/.claude/settings.json（パスは clone 先に合わせる）</span><button class="copy">copy</button></div>
+            <pre><code>{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File C:\\path\\to\\claude-document-skills-setup\\hooks\\office-windows-guard.ps1"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> 動作確認（エンドツーエンド）</h2>
     <div class="code" data-code='$py = &quot;$env:USERPROFILE\.claude\skill-envs\document-skills\Scripts\python.exe&quot;&#10;$skill = &quot;$env:USERPROFILE\.claude\plugins\marketplaces\anthropic-agent-skills\skills\docx&quot;&#10;node -e &quot;const {Document,Packer,Paragraph,TextRun}=require(&apos;docx&apos;);const fs=require(&apos;fs&apos;);Packer.toBuffer(new Document({sections:[{children:[new Paragraph({children:[new TextRun(&apos;テスト 環境確認&apos;)]})]}]})).then(b=>fs.writeFileSync(&apos;test.docx&apos;,b))&quot;&#10;pandoc test.docx -t plain&#10;&amp; $py &quot;$skill\scripts\office\unpack.py&quot; test.docx unpacked&#10;&amp; $py &quot;$skill\scripts\office\validate.py&quot; test.docx'>
       <div class="bar"><span>PowerShell</span><button class="copy">copy</button></div>
 <pre><code>$py    = "$env:USERPROFILE\.claude\skill-envs\document-skills\Scripts\python.exe"

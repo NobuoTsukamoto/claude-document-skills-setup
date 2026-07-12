@@ -11,6 +11,7 @@
       - Poppler / pdftoppm  (winget: oschwartz10612.Poppler)
       - npm -g: docx / pptxgenjs / react-icons / react / react-dom / sharp
       - User 環境変数: PATH 追記 / NODE_PATH / PYTHONUTF8=1
+      - Windows 補完スキル document-skills-windows を ~/.claude/skills に配置
 
     docx: 文書の作成/読取/編集/PDF化。pptx: スライドの作成/読取/画像化。
     xlsx: ブックの作成/読取/再計算検証。
@@ -118,6 +119,18 @@ if(-not $VerifyOnly){
     [Environment]::SetEnvironmentVariable('NODE_PATH', $NpmGlobalModules, 'User')
     [Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')
     Ok 'User 環境変数を設定 (PATH / NODE_PATH / PYTHONUTF8)'
+
+    # -----------------------------------------------------------------------
+    # 5) Windows 補完スキル (document-skills-windows) を配置
+    # -----------------------------------------------------------------------
+    $skillSrc = Join-Path $PSScriptRoot 'skills\document-skills-windows'
+    if(Test-Path $skillSrc){
+        $skillDst = Join-Path $env:USERPROFILE '.claude\skills'
+        New-Item -ItemType Directory -Force $skillDst | Out-Null
+        Copy-Item -Recurse -Force $skillSrc $skillDst
+        Ok "補完スキルを配置: $skillDst\document-skills-windows"
+        Info 'PreToolUse フック (hooks\office-windows-guard.ps1) の settings.json への登録は README 参照。'
+    }
 }
 
 # ---------------------------------------------------------------------------
@@ -140,6 +153,11 @@ if(Test-Path $VenvPy){
     $r = & $VenvPy -c "import lxml,defusedxml,markitdown,PIL,openpyxl;print('ok')" 2>&1
     if($r -match 'ok'){ Ok "venv python + lxml/defusedxml/markitdown/Pillow/openpyxl -> $VenvPy" } else { Fail "venv python パッケージ NG: $r"; $allOk = $false }
 } else { Fail "venv python が見つかりません: $VenvPy"; $allOk = $false }
+
+# Windows 補完スキル (任意コンポーネント: 無くても FAIL にはしない)
+$skillMd = Join-Path $env:USERPROFILE '.claude\skills\document-skills-windows\SKILL.md'
+if(Test-Path $skillMd){ Ok '補完スキル document-skills-windows 配置済み' }
+else { Warn '補完スキル未配置 (skills\document-skills-windows を ~/.claude/skills にコピー)' }
 
 # node パッケージ (docx / pptxgenjs / sharp)
 foreach($mod in 'docx','pptxgenjs','sharp'){

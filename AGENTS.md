@@ -33,36 +33,20 @@ soffice --headless --convert-to pdf --outdir . file.pptx
 pdftoppm -jpeg -r 150 file.pdf slide      # PDF → slide-01.jpg, slide-02.jpg, ...
 ```
 
-## xlsx の再計算は `recalc.py` ではなくマクロ直呼びで行う（重要）
+## xlsx の再計算は `recalc.py` ではなく `recalc_windows.py` で行う（重要）
 
 xlsx スキル必須手順の `scripts/recalc.py` は Windows では動かない
 （`soffice.py` の `AF_UNIX` 依存 + マクロ配置先が macOS/Linux パス固定）。
-代わりに次の手順で同じことをする:
+代わりに補完スキル同梱の自作スクリプトを使う（マクロ配置 → soffice 直呼び →
+openpyxl 検証を1コマンド化。出力は公式 recalc.py と同形式の JSON）:
 
-1. `%APPDATA%\LibreOffice\4\user\basic\Standard\Module1.xba` に再計算マクロを書き込む
-   （既定プロファイルに Module1 が登録済みなのでファイル差し替えだけでよい）:
+```powershell
+& "$env:USERPROFILE\.claude\skill-envs\document-skills\Scripts\python.exe" `
+  "$env:USERPROFILE\.claude\skills\document-skills-windows\scripts\recalc_windows.py" file.xlsx
+```
 
-   ```xml
-   <?xml version="1.0" encoding="UTF-8"?>
-   <!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
-   <script:module xmlns:script="http://openoffice.org/2000/script" script:name="Module1" script:language="StarBasic">
-       Sub RecalculateAndSave()
-         ThisComponent.calculateAll()
-         ThisComponent.store()
-         ThisComponent.close(True)
-       End Sub
-   </script:module>
-   ```
-
-2. `soffice` を直接呼んで再計算・保存する:
-
-   ```powershell
-   soffice --headless --norestore "vnd.sun.star.script:Standard.Module1.RecalculateAndSave?language=Basic&location=application" file.xlsx
-   ```
-
-3. 検証は openpyxl で行う（`validate.py` は xlsx 非対応）:
-   `load_workbook(f, data_only=True)` で `#REF!` 等のエラー値が無いこと・計算結果が
-   期待値と一致することを確認する。
+なお `validate.py` は xlsx 非対応（docx / pptx のみ）。xlsx の検証は上記の再計算後、
+openpyxl `load_workbook(f, data_only=True)` で計算結果が期待値と一致することを確認する。
 
 xlsx 作成時の規約（スキル共通）: 集計はハードコードせず Excel 数式（SUMIFS 等）で書く。
 手入力値は青字・数式は黒字。ハードコード値には出典列を付ける。
